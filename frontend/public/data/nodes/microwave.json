@@ -1,0 +1,1 @@
+[{"name": "Beginner Cook", "childFile": "nodes/microwave__beginner_cook.json", "recipeCount": 9, "childCount": 9}, {"name": "Small Appliance", "childFile": "nodes/microwave__small_appliance.json", "recipeCount": 5, "childCount": 5}, {"name": "Other Microwave", "childFile": "nodes/microwave__other.json", "recipeCount": 59, "childCount": 59}]

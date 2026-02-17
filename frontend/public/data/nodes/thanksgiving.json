@@ -1,0 +1,1 @@
+[{"name": "Oven", "childFile": "nodes/thanksgiving__oven.json", "recipeCount": 23, "childCount": 23}, {"name": "Beginner Cook", "childFile": "nodes/thanksgiving__beginner_cook.json", "recipeCount": 10, "childCount": 10}, {"name": "Other Thanksgiving", "childFile": "nodes/thanksgiving__other.json", "recipeCount": 198, "childCount": 198}]

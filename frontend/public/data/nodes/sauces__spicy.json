@@ -1,0 +1,1 @@
+[{"name": "Restaurant", "childFile": "nodes/sauces__spicy__cl0.json", "recipeCount": 10, "childCount": 10, "silhouette": 0.195}, {"name": "Sauce & Bbq", "childFile": "nodes/sauces__spicy__cl1.json", "recipeCount": 35, "childCount": 35, "silhouette": 0.195}, {"name": "Misc Spicy", "childFile": "nodes/sauces__spicy__misc.json", "recipeCount": 199, "childCount": 199}]
