@@ -1,18 +1,4 @@
+/* Base reset — Tailwind base provides normalize */
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* Custom scrollbar for better look */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
+/* No Tailwind components/utilities needed — using custom App.css */

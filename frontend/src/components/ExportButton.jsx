@@ -1,49 +1,80 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 /**
- * Export the current subtree as CSV.
- * Recursively collects all loaded leaf nodes.
+ * Export the full hierarchical taxonomy tree as JSON.
+ * Downloads taxonomy_tree.json and all referenced node files,
+ * producing a single self-contained hierarchical JSON.
  */
-const ExportButton = ({ nodes }) => {
-    const handleExport = () => {
-        if (!nodes || nodes.length === 0) return;
+const ExportButton = () => {
+    const [exporting, setExporting] = useState(false);
 
-        // Collect only leaf nodes
-        const leaves = nodes.filter(n => n.isLeaf);
-        if (leaves.length === 0) {
-            alert('No recipes loaded yet. Expand some nodes first!');
-            return;
+    const handleExport = async () => {
+        try {
+            setExporting(true);
+
+            // Load the root taxonomy tree
+            const res = await fetch('/data/taxonomy_tree.json');
+            if (!res.ok) throw new Error('Failed to load taxonomy data');
+            const tree = await res.json();
+
+            // Build the full tree by resolving child files recursively
+            const fullTree = await resolveTree(tree);
+
+            // Download as JSON
+            const json = JSON.stringify(fullTree, null, 2);
+            const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `recipe_taxonomy_tree_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export error:', err);
+            alert('Export failed: ' + err.message);
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    // Recursively resolve childFile references (up to 2 levels deep to keep file size reasonable)
+    const resolveTree = async (node, depth = 0) => {
+        const result = { ...node };
+
+        // If this node has a childFile and we haven't gone too deep, resolve it
+        if (node.childFile && depth < 2) {
+            try {
+                const res = await fetch(`/data/${node.childFile}`);
+                if (res.ok) {
+                    const children = await res.json();
+                    result.children = await Promise.all(
+                        children.map(child => resolveTree(child, depth + 1))
+                    );
+                    delete result.childFile;
+                }
+            } catch (err) {
+                console.warn(`Could not resolve ${node.childFile}:`, err);
+            }
         }
 
-        // Build CSV
-        const headers = ['Title', 'Category', 'Ingredients', 'Directions'];
-        const rows = leaves.map(leaf => [
-            `"${(leaf.name || '').replace(/"/g, '""')}"`,
-            `"${(leaf.category || '').replace(/"/g, '""')}"`,
-            `"${(leaf.ingredients || []).join('; ').replace(/"/g, '""')}"`,
-            `"${(leaf.directions || []).join('; ').replace(/"/g, '""')}"`,
-        ]);
+        // If children exist in the node already (root level)
+        if (node.children && Array.isArray(node.children)) {
+            result.children = await Promise.all(
+                node.children.map(child => resolveTree(child, depth + 1))
+            );
+        }
 
-        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `recipe_export_${new Date().toISOString().slice(0, 10)}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
+        return result;
     };
 
     return (
         <button
+            className="export-btn"
             onClick={handleExport}
-            className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium shadow-sm"
-            title="Export loaded recipes as CSV"
+            disabled={exporting}
+            title="Download the hierarchical taxonomy tree as JSON"
         >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export CSV
+            {exporting ? '⏳ Exporting…' : '📥 Export Tree'}
         </button>
     );
 };

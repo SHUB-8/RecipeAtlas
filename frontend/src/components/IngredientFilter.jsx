@@ -1,42 +1,130 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
- * Ingredient filter — type an ingredient to highlight matching recipes.
+ * Multi-select ingredient filter with autocomplete dropdown.
+ * Loads ingredients_list.json for suggestions.
+ * User can add multiple ingredients as chips.
  */
 const IngredientFilter = ({ onFilter }) => {
-    const [ingredient, setIngredient] = useState('');
+    const [query, setQuery] = useState('');
+    const [selected, setSelected] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
+    const [allIngredients, setAllIngredients] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const wrapperRef = useRef(null);
 
-    const handleChange = (e) => {
+    // Load ingredient list on mount
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch('/data/ingredients_list.json');
+                if (res.ok) {
+                    const data = await res.json();
+                    setAllIngredients(data); // [{name, count}, ...]
+                }
+            } catch (err) {
+                console.error('Failed to load ingredients list:', err);
+            }
+        })();
+    }, []);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    // Notify parent whenever selected ingredients change
+    useEffect(() => {
+        if (onFilter) onFilter(selected);
+    }, [selected, onFilter]);
+
+    const handleInputChange = (e) => {
         const val = e.target.value;
-        setIngredient(val);
-        if (onFilter) onFilter(val);
+        setQuery(val);
+
+        if (val.length >= 2) {
+            const q = val.toLowerCase();
+            const matches = allIngredients
+                .filter(ing => ing.name.includes(q) && !selected.includes(ing.name))
+                .slice(0, 10);
+            setSuggestions(matches);
+            setShowDropdown(matches.length > 0);
+        } else {
+            setSuggestions([]);
+            setShowDropdown(false);
+        }
     };
 
-    const handleClear = () => {
-        setIngredient('');
-        if (onFilter) onFilter('');
+    const addIngredient = (name) => {
+        if (!selected.includes(name)) {
+            setSelected([...selected, name]);
+        }
+        setQuery('');
+        setSuggestions([]);
+        setShowDropdown(false);
+    };
+
+    const removeIngredient = (name) => {
+        setSelected(selected.filter(s => s !== name));
+    };
+
+    const clearAll = () => {
+        setSelected([]);
+        setQuery('');
     };
 
     return (
-        <div className="relative max-w-xs">
-            <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">🥕</span>
+        <div ref={wrapperRef} className="ingredient-filter-wrapper">
+            {/* Selected ingredient chips */}
+            {selected.length > 0 && (
+                <div className="ingredient-chips">
+                    {selected.map(name => (
+                        <span key={name} className="ingredient-chip">
+                            {name}
+                            <button
+                                className="chip-remove"
+                                onClick={() => removeIngredient(name)}
+                            >×</button>
+                        </span>
+                    ))}
+                    <button className="clear-all-btn" onClick={clearAll}>Clear all</button>
+                </div>
+            )}
+
+            {/* Input */}
+            <div className="filter-input-container">
+                <span className="filter-icon">🥕</span>
                 <input
                     type="text"
-                    value={ingredient}
-                    onChange={handleChange}
-                    placeholder="Filter by ingredient…"
-                    className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm"
+                    value={query}
+                    onChange={handleInputChange}
+                    onFocus={() => query.length >= 2 && suggestions.length > 0 && setShowDropdown(true)}
+                    placeholder={selected.length > 0 ? "Add more…" : "Filter by ingredient…"}
+                    className="filter-input"
                 />
-                {ingredient && (
-                    <button
-                        onClick={handleClear}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                        ✕
-                    </button>
-                )}
             </div>
+
+            {/* Dropdown */}
+            {showDropdown && suggestions.length > 0 && (
+                <div className="ingredient-dropdown">
+                    {suggestions.map((ing, i) => (
+                        <button
+                            key={i}
+                            className="ingredient-suggestion"
+                            onClick={() => addIngredient(ing.name)}
+                        >
+                            <span className="suggestion-name">{ing.name}</span>
+                            <span className="suggestion-count">{ing.count.toLocaleString()} recipes</span>
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
