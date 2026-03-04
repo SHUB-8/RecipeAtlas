@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useCallback, useState, forwardRef, useImperat
 import * as d3 from 'd3';
 
 const NODE_COLORS = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-    '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
-    '#BB8FCE', '#85C1E9', '#F1948A', '#82E0AA',
+    '#f43f5e', '#10b981', '#0ea5e9', '#f59e0b',
+    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+    '#6366f1', '#84cc16', '#06b6d4', '#d946ef',
 ];
 
 const ForceGraphVisualization = forwardRef(({
@@ -421,7 +421,7 @@ const ForceGraphVisualization = forwardRef(({
 
         linkSel.enter().append('line')
             .attr('class', 'link-line')
-            .attr('stroke', 'rgba(255,255,255,0.15)')
+            .attr('stroke', 'rgba(15,23,42,0.15)')
             .attr('stroke-width', 1.5)
             .attr('opacity', 0)
             .transition('enter').duration(400).attr('opacity', 0.4);
@@ -454,7 +454,7 @@ const ForceGraphVisualization = forwardRef(({
             .attr('class', 'node-circle')
             .attr('r', 0)
             .attr('fill', d => getColor(d))
-            .attr('stroke', 'rgba(255,255,255,0.3)')
+            .attr('stroke', 'rgba(255,255,255,0.6)')
             .attr('stroke-width', 2)
             .attr('filter', 'url(#drop-shadow)')
             .transition().duration(500)
@@ -464,9 +464,9 @@ const ForceGraphVisualization = forwardRef(({
             .attr('class', 'node-label')
             .attr('dy', d => getRadius(d) + 14)
             .attr('text-anchor', 'middle')
-            .attr('font-size', d => d.isLeaf ? '9px' : '12px')
-            .attr('font-weight', d => d.isLeaf ? 'normal' : '600')
-            .attr('fill', '#e0e0e0')
+            .attr('font-size', d => d.isLeaf ? '9px' : '11px')
+            .attr('font-weight', d => d.isLeaf ? '500' : '700')
+            .attr('fill', '#0f172a')
             .text(d => {
                 const n = d.name || '';
                 return n.length > 22 ? n.slice(0, 19) + '…' : n;
@@ -480,14 +480,15 @@ const ForceGraphVisualization = forwardRef(({
             .attr('rx', 8).attr('ry', 8)
             .attr('x', -24).attr('y', -8)
             .attr('width', 48).attr('height', 16)
-            .attr('fill', 'rgba(0,0,0,0.4)')
-            .attr('stroke', 'rgba(255,255,255,0.2)');
+            .attr('fill', 'rgba(255,255,255,0.9)')
+            .attr('stroke', 'rgba(0,0,0,0.08)');
 
         badgeG.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '0.3em')
             .attr('font-size', '9px')
-            .attr('fill', '#fff')
+            .attr('font-weight', '700')
+            .attr('fill', '#1e293b')
             .text(d => {
                 const c = d.recipeCount;
                 return c >= 1000 ? `${(c / 1000).toFixed(1)}k` : c;
@@ -498,7 +499,7 @@ const ForceGraphVisualization = forwardRef(({
             .attr('class', 'expand-ring')
             .attr('r', d => getRadius(d) + 4)
             .attr('fill', 'none')
-            .attr('stroke', d => expandedRef.current.has(d.id) ? '#4ade80' : 'rgba(255,255,255,0.4)')
+            .attr('stroke', d => expandedRef.current.has(d.id) ? '#10b981' : 'rgba(15,23,42,0.15)')
             .attr('stroke-width', d => expandedRef.current.has(d.id) ? 2 : 1)
             .attr('stroke-dasharray', d => expandedRef.current.has(d.id) ? 'none' : '4 4');
 

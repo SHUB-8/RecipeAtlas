@@ -118,7 +118,7 @@ function App() {
     <div className="app-root">
       <header className="app-header">
         <div className="header-row">
-          <h1 className="app-logo">🍳 Recipe Taxonomy</h1>
+          <h1 className="app-logo">🗺️ RecipeAtlas</h1>
 
           {/* Universal search (categories, keywords, ingredients) */}
           <SearchBar onSearch={setSearchQuery} />
